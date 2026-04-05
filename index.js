@@ -6,10 +6,10 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// ✅ FIXED NEO4J CONNECTION (this was main hidden issue)
+
 const driver = neo4j.driver(
     "neo4j+s://483b1eb8.databases.neo4j.io",
-    neo4j.auth.basic("neo4j", "cDR7fw2WZIz0wq6kuz5dm2DwP6qCywW2tjW2m6CrQtM")
+    neo4j.auth.basic("483b1eb8", "cDR7fw2WZIz0wq6kuz5dm2DwP6qCywW2m6CrQtM")
 );
 
 const PORT = process.env.PORT || 5000;
