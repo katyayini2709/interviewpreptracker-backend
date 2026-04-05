@@ -9,10 +9,9 @@ app.use(express.json());
 
 // ===== NEO4J CONNECTION =====
 const driver = neo4j.driver(
-    process.env.NEO4J_URI,
-    neo4j.auth.basic(process.env.NEO4J_USER, process.env.NEO4J_PASSWORD)
+    "neo4j+s://483b1eb8.databases.neo4j.io",
+    neo4j.auth.basic("neo4j", "cDR7fw2WZIz0wq6kuz5dm2DwP6qCywW2tjW2m6CrQtM")
 );
-
 const PORT = process.env.PORT || 5000;
 
 // ===== REGISTER =====
