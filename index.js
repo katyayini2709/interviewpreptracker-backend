@@ -12,6 +12,7 @@ const driver = neo4j.driver(
     "neo4j+s://483b1eb8.databases.neo4j.io",
     neo4j.auth.basic("neo4j", "cDR7fw2WZIz0wq6kuz5dm2DwP6qCywW2tjW2m6CrQtM")
 );
+
 const PORT = process.env.PORT || 5000;
 
 // ===== REGISTER =====
@@ -22,15 +23,17 @@ app.post('/api/register', async (req, res) => {
     try {
         const result = await session.run(
             `CREATE (u:User {
-                id: randomUUID(),
+                id: $id,
                 name: $name,
                 email: $email,
                 password: $password
             }) RETURN u`,
-            { name, email, password }
+            { id: Date.now().toString(), name, email, password }
         );
+
         res.json(result.records[0].get('u').properties);
     } catch (err) {
+        console.log("ERROR:", err);
         res.status(500).json({ error: err.message });
     } finally {
         await session.close();
@@ -55,13 +58,14 @@ app.post('/api/login', async (req, res) => {
 
         res.json(result.records[0].get('u').properties);
     } catch (err) {
+        console.log("ERROR:", err);
         res.status(500).json({ error: err.message });
     } finally {
         await session.close();
     }
 });
 
-// ===== QUESTIONS =====
+// ===== ADD QUESTION =====
 app.post('/api/questions', async (req, res) => {
     const { userId, question, company, subject, difficulty } = req.body;
     const session = driver.session();
@@ -71,7 +75,7 @@ app.post('/api/questions', async (req, res) => {
             `
             MATCH (u:User {id: $userId})
             CREATE (q:Question {
-                id: randomUUID(),
+                id: $id,
                 question: $question,
                 company: $company,
                 subject: $subject,
@@ -82,16 +86,26 @@ app.post('/api/questions', async (req, res) => {
             CREATE (u)-[:HAS]->(q)
             RETURN q
             `,
-            { userId, question, company, subject, difficulty }
+            {
+                id: Date.now().toString(),
+                userId,
+                question,
+                company,
+                subject,
+                difficulty
+            }
         );
+
         res.json(result.records[0].get('q').properties);
     } catch (err) {
+        console.log("ERROR:", err);
         res.status(500).json({ error: err.message });
     } finally {
         await session.close();
     }
 });
 
+// ===== GET QUESTIONS =====
 app.get('/api/questions/:userId', async (req, res) => {
     const session = driver.session();
 
@@ -103,15 +117,18 @@ app.get('/api/questions/:userId', async (req, res) => {
             `,
             { userId: req.params.userId }
         );
+
         const questions = result.records.map(r => r.get('q').properties);
         res.json(questions);
     } catch (err) {
+        console.log("ERROR:", err);
         res.status(500).json({ error: err.message });
     } finally {
         await session.close();
     }
 });
 
+// ===== TOGGLE COMPLETE =====
 app.put('/api/questions/:id/toggle', async (req, res) => {
     const session = driver.session();
 
@@ -124,14 +141,17 @@ app.put('/api/questions/:id/toggle', async (req, res) => {
             `,
             { id: req.params.id }
         );
+
         res.json(result.records[0].get('q').properties);
     } catch (err) {
+        console.log("ERROR:", err);
         res.status(500).json({ error: err.message });
     } finally {
         await session.close();
     }
 });
 
+// ===== DELETE QUESTION =====
 app.delete('/api/questions/:id', async (req, res) => {
     const session = driver.session();
 
@@ -140,15 +160,17 @@ app.delete('/api/questions/:id', async (req, res) => {
             `MATCH (q:Question {id: $id}) DETACH DELETE q`,
             { id: req.params.id }
         );
+
         res.json({ message: "Deleted" });
     } catch (err) {
+        console.log("ERROR:", err);
         res.status(500).json({ error: err.message });
     } finally {
         await session.close();
     }
 });
 
-// ===== MATERIALS =====
+// ===== ADD MATERIAL =====
 app.post('/api/materials', async (req, res) => {
     const { userId, title, link } = req.body;
     const session = driver.session();
@@ -158,23 +180,31 @@ app.post('/api/materials', async (req, res) => {
             `
             MATCH (u:User {id: $userId})
             CREATE (m:Material {
-                id: randomUUID(),
+                id: $id,
                 title: $title,
                 link: $link
             })
             CREATE (u)-[:HAS_MATERIAL]->(m)
             RETURN m
             `,
-            { userId, title, link }
+            {
+                id: Date.now().toString(),
+                userId,
+                title,
+                link
+            }
         );
+
         res.json(result.records[0].get('m').properties);
     } catch (err) {
+        console.log("ERROR:", err);
         res.status(500).json({ error: err.message });
     } finally {
         await session.close();
     }
 });
 
+// ===== GET MATERIALS =====
 app.get('/api/materials/:userId', async (req, res) => {
     const session = driver.session();
 
@@ -186,15 +216,18 @@ app.get('/api/materials/:userId', async (req, res) => {
             `,
             { userId: req.params.userId }
         );
+
         const materials = result.records.map(r => r.get('m').properties);
         res.json(materials);
     } catch (err) {
+        console.log("ERROR:", err);
         res.status(500).json({ error: err.message });
     } finally {
         await session.close();
     }
 });
 
+// ===== DELETE MATERIAL =====
 app.delete('/api/materials/:id', async (req, res) => {
     const session = driver.session();
 
@@ -203,8 +236,10 @@ app.delete('/api/materials/:id', async (req, res) => {
             `MATCH (m:Material {id: $id}) DETACH DELETE m`,
             { id: req.params.id }
         );
+
         res.json({ message: "Deleted" });
     } catch (err) {
+        console.log("ERROR:", err);
         res.status(500).json({ error: err.message });
     } finally {
         await session.close();
