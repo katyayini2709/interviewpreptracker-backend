@@ -8,8 +8,11 @@ app.use(express.json());
 
 
 const driver = neo4j.driver(
-  "neo4j+s://d177db2b.databases.neo4j.io",
-  neo4j.auth.basic("neo4j", "e3g633NskMF0zmh3vLgZkO9uQjxV17ILywvpYhTTSr4")
+  process.env.NEO4J_URI,
+  neo4j.auth.basic(
+    process.env.NEO4J_USER,
+    process.env.NEO4J_PASSWORD
+  )
 );
 
 const PORT = process.env.PORT || 5000;
